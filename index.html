@@ -15,37 +15,70 @@
         #video-player {
             object-fit: cover; /* Zajistí, že video pokryje celou plochu bez deformace */
         }
+        /* Přidáme jemný přechod pro zobrazení a skrytí ikony */
+        #play-pause-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-black">
 
-    <!-- Kontejner pro video, který zabere celou obrazovku -->
+    <!-- Kontejner pro video a ovládací prvky -->
     <div class="fixed top-0 left-0 w-full h-full">
         <!-- Video element -->
         <!-- atributy 'autoplay', 'loop', a 'muted' zajistí automatické spuštění a opakování -->
-        <!-- 'playsinline' je důležitý pro správné fungování na mobilních zařízeních (zejména iOS) -->
+        <!-- 'playsinline' je klíčový pro správné fungování na mobilních zařízeních (zejména iOS) -->
         <video id="video-player" class="w-full h-full cursor-pointer" autoplay loop muted playsinline>
             <!-- Zdroj videa, který jste nahrál -->
             <source src="sunset_compress.mp4" type="video/mp4">
             <!-- Zpráva pro případ, že by prohlížeč nepodporoval video tag -->
             Váš prohlížeč nepodporuje přehrávání videí.
         </video>
+
+        <!-- Optimalizace pro mobily: Překryvná ikona Play/Pause -->
+        <!-- Tento prvek se zobrazí uprostřed obrazovky, když je video pozastaveno -->
+        <div id="play-pause-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none">
+            <div class="bg-black bg-opacity-50 rounded-full p-8">
+                <!-- SVG ikona "Play" -->
+                <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Získání odkazu na video element
+        // Získání odkazů na elementy
         const video = document.getElementById('video-player');
+        const overlay = document.getElementById('play-pause-overlay');
 
-        // Přidání posluchače události pro kliknutí na video
-        video.addEventListener('click', () => {
-            // Zkontroluje, zda je video pozastavené
+        // Funkce pro přepínání stavu přehrávání
+        function togglePlayPause() {
             if (video.paused) {
-                // Pokud je pozastavené, spustí ho
                 video.play();
             } else {
-                // Pokud hraje, pozastaví ho
                 video.pause();
             }
+        }
+
+        // Přidání posluchače události pro kliknutí na video
+        video.addEventListener('click', togglePlayPause);
+        // Přidání posluchače i na překryvnou vrstvu, aby bylo možné video znovu spustit kliknutím na ikonu
+        overlay.addEventListener('click', togglePlayPause);
+
+
+        // Zobrazí ikonu, když se video pozastaví
+        video.addEventListener('pause', () => {
+            overlay.classList.remove('opacity-0');
+            // Povolíme klikání na překryvnou vrstvu, když je viditelná
+            overlay.classList.remove('pointer-events-none');
+        });
+
+        // Skryje ikonu, když se video spustí
+        video.addEventListener('play', () => {
+            overlay.classList.add('opacity-0');
+            // Zakážeme klikání na překryvnou vrstvu, když je neviditelná
+            overlay.classList.add('pointer-events-none');
         });
     </script>
 
