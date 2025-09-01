@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Prezentace</title>
-    <!-- Připojení Tailwind CSS pro snadné stylování -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Vlastní styl pro zajištění, že video bude vždy na pozadí a responzivní */
@@ -23,29 +22,25 @@
 </head>
 <body class="bg-black">
 
-    <!-- Kontejner pro video a ovládací prvky -->
     <div class="fixed top-0 left-0 w-full h-full">
-        <!-- Video element -->
-        <!-- atributy 'autoplay', 'loop', a 'muted' zajistí automatické spuštění a opakování -->
-        <!-- 'playsinline' je klíčový pro správné fungování na mobilních zařízeních (zejména iOS) -->
         <video id="video-player" class="w-full h-full cursor-pointer" autoplay loop muted playsinline>
-            <!-- Zdroj videa, který jste nahrál -->
             <source src="sunset_compress.mp4" type="video/mp4">
-            <!-- Zpráva pro případ, že by prohlížeč nepodporoval video tag -->
             Váš prohlížeč nepodporuje přehrávání videí.
         </video>
 
-        <!-- Optimalizace pro mobily: Překryvná ikona Play/Pause -->
-        <!-- Tento prvek se zobrazí uprostřed obrazovky, když je video pozastaveno -->
         <div id="play-pause-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none">
             <div class="bg-black bg-opacity-50 rounded-full p-8">
-                <!-- SVG ikona "Play" -->
                 <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
                 </svg>
             </div>
         </div>
     </div>
+
+    <audio autoplay loop>
+        <source src="sunset.mp3" type="audio/mpeg">
+        Váš prohlížeč nepodporuje přehrávání zvuku.
+    </audio>
 
     <script>
         // Získání odkazů na elementy
