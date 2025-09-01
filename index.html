@@ -3,39 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Prezentace s Hudbou</title>
+    <title>Video Prezentace s Ovládáním</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Vlastní styl pro zajištění, že video bude vždy na pozadí a responzivní */
         body {
             font-family: 'Inter', sans-serif;
             overflow: hidden; /* Zabrání posouvání stránky */
         }
         #video-player {
-            object-fit: cover; /* Zajistí, že video pokryje celou plochu bez deformace */
+            object-fit: cover; /* Video pokryje celou plochu bez deformace */
         }
-        /* Přidáme jemný přechod pro zobrazení a skrytí ikony */
-        #play-pause-overlay {
-            transition: opacity 0.3s ease-in-out;
+        #play-pause-overlay, #mute-button {
+            transition: opacity 0.3s ease-in-out; /* Jemný přechod pro ikony */
+            cursor: pointer;
         }
     </style>
 </head>
 <body class="bg-black">
 
     <div class="fixed top-0 left-0 w-full h-full">
-        <video id="video-player" class="w-full h-full cursor-pointer" autoplay loop muted playsinline>
+        <video id="video-player" class="w-full h-full" loop muted playsinline>
             <source src="sunset_compress.mp4" type="video/mp4">
             Váš prohlížeč nepodporuje přehrávání videí.
         </video>
 
-        <div id="play-pause-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none">
+        <div id="play-pause-overlay" class="absolute inset-0 flex items-center justify-center">
             <div class="bg-black bg-opacity-50 rounded-full p-8">
-                <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <svg id="play-icon" class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
                 </svg>
             </div>
         </div>
     </div>
+
+    <div id="mute-button" class="absolute bottom-5 right-5 bg-black bg-opacity-50 rounded-full p-3">
+        <svg id="unmute-icon" class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+        </svg>
+        <svg id="mute-icon" class="w-6 h-6 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l-2.25 2.25M19.5 12l2.25-2.25M12.75 4.97v14.06l-7.03-7.03H4.51c-.88 0-1.704-.506-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.757 3.63 8.25 4.51 8.25H5.72z" />
+        </svg>
+    </div>
+
 
     <audio id="background-music" loop>
         <source src="sunset.mp3" type="audio/mpeg">
@@ -45,48 +54,49 @@
     <script>
         // Získání odkazů na elementy
         const video = document.getElementById('video-player');
-        const overlay = document.getElementById('play-pause-overlay');
         const audio = document.getElementById('background-music');
-        let musicStarted = false; // Sledujeme, zda hudba již hraje
+        const overlay = document.getElementById('play-pause-overlay');
+        const muteButton = document.getElementById('mute-button');
+        const muteIcon = document.getElementById('mute-icon');
+        const unmuteIcon = document.getElementById('unmute-icon');
 
-        // Funkce pro spuštění hudby (jen jednou)
-        function startMusic() {
-            if (!musicStarted) {
-                audio.play().catch(error => {
-                    // Pro případ, že by se přehrávání z nějakého důvodu nepodařilo
-                    console.error("Chyba při přehrávání audia:", error);
-                });
-                musicStarted = true;
-            }
-        }
-
-        // Funkce pro přepínání stavu přehrávání videa
+        // Funkce pro přepínání stavu přehrávání videa a hudby
         function togglePlayPause() {
-            // Při první interakci spustíme hudbu
-            startMusic();
-            
             if (video.paused) {
                 video.play();
+                audio.play().catch(e => console.error("Chyba přehrávání audia:", e));
             } else {
                 video.pause();
+                audio.pause();
             }
+        }
+        
+        // Funkce pro přepínání ztlumení
+        function toggleMute() {
+            audio.muted = !audio.muted;
+            // Aktualizace ikon
+            muteIcon.classList.toggle('hidden');
+            unmuteIcon.classList.toggle('hidden');
         }
 
         // Přidání posluchačů událostí
+        // Kliknutí na video pauzne/spustí video i hudbu
         video.addEventListener('click', togglePlayPause);
+        // Kliknutí na překryvnou vrstvu spustí video i hudbu
         overlay.addEventListener('click', togglePlayPause);
+        // Kliknutí na tlačítko ztlumení
+        muteButton.addEventListener('click', toggleMute);
 
-        // Zobrazí ikonu, když se video pozastaví
-        video.addEventListener('pause', () => {
-            overlay.classList.remove('opacity-0');
-            overlay.classList.remove('pointer-events-none');
-        });
-
-        // Skryje ikonu, když se video spustí
+        // Skryje ikonu "Play", když se video spustí
         video.addEventListener('play', () => {
-            overlay.classList.add('opacity-0');
-            overlay.classList.add('pointer-events-none');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
         });
+
+        // Zobrazí ikonu "Play", když se video pozastaví
+        video.addEventListener('pause', () => {
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+        });
+
     </script>
 
 </body>
