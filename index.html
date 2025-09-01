@@ -9,7 +9,7 @@
         body {
             font-family: 'Inter', sans-serif;
             overflow: hidden;
-            background-color: #000; /* Výchozí černé pozadí */
+            background-color: #000;
         }
         #video-container {
             position: fixed;
@@ -17,10 +17,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex; /* Použijeme flexbox pro vycentrování */
-            justify-content: center;
-            align-items: center;
-            background-color: #000; /* Zajistíme černé pozadí pod videem */
+            background-color: #000;
         }
         #video-player {
             object-fit: cover;
@@ -32,13 +29,13 @@
             cursor: pointer;
         }
         #photo-overlay {
-            background-image: url('sunset.jpg'); /* Cesta k tvé fotografii */
+            background-image: url('pozadi-sunset.jpg'); /* Cesta k tvé fotografii */
             background-size: cover;
             background-position: center;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
+            text-align: center;
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
         }
@@ -62,7 +59,9 @@
     </div>
 
     <div id="photo-overlay" class="fixed inset-0 hidden">
-        <p class="text-3xl md:text-5xl font-bold text-center p-4 bg-black bg-opacity-50 rounded-lg">Toto video bylo vytvořené z této fotografie.</p>
+        <div class="bg-black bg-opacity-50 rounded-lg p-4 max-w-xl">
+             <p class="text-3xl md:text-5xl font-bold">Toto video bylo vytvořené z této fotografie.</p>
+        </div>
     </div>
 
     <div id="mute-button" class="absolute bottom-5 right-5 bg-black bg-opacity-50 rounded-full p-3">
@@ -80,70 +79,77 @@
     </audio>
 
     <script>
-        // Získání odkazů na elementy
         const videoContainer = document.getElementById('video-container');
         const video = document.getElementById('video-player');
         const audio = document.getElementById('background-music');
-        const overlay = document.getElementById('play-pause-overlay');
+        const playOverlay = document.getElementById('play-pause-overlay');
         const photoOverlay = document.getElementById('photo-overlay');
         const muteButton = document.getElementById('mute-button');
         const muteIcon = document.getElementById('mute-icon');
         const unmuteIcon = document.getElementById('unmute-icon');
 
-        // Funkce pro přepínání stavu přehrávání
-        function togglePlayPause() {
-            if (video.paused || video.ended) { // Zohledníme i stav "ended"
-                video.play();
-                audio.play().catch(e => console.error("Chyba přehrávání audia:", e));
-            } else {
-                video.pause();
-                audio.pause();
-            }
+        function playMedia() {
+            video.play().catch(e => console.error("Chyba při spouštění videa:", e));
+            audio.play().catch(e => console.error("Chyba při spouštění audia:", e));
         }
-        
-        // Funkce pro přepínání ztlumení
+
+        function pauseMedia() {
+            video.pause();
+            audio.pause();
+        }
+
+        function restartAndPlay() {
+            photoOverlay.classList.add('hidden');
+            videoContainer.classList.remove('hidden');
+            video.currentTime = 0;
+            audio.currentTime = 0;
+            playMedia();
+        }
+
         function toggleMute() {
             audio.muted = !audio.muted;
             muteIcon.classList.toggle('hidden');
             unmuteIcon.classList.toggle('hidden');
         }
 
-        // --- Posluchače událostí ---
-        video.addEventListener('click', togglePlayPause);
-        overlay.addEventListener('click', togglePlayPause);
+        // --- Přiřazení událostí ---
+
+        // Klik na "Play" tlačítko spustí přehrávání
+        playOverlay.addEventListener('click', playMedia);
+
+        // Klik na běžící video ho pozastaví
+        video.addEventListener('click', () => {
+            if (!video.paused) {
+                pauseMedia();
+            }
+        });
+        
+        // Klik na fotku na konci restartuje přehrávání
+        photoOverlay.addEventListener('click', restartAndPlay);
+        
+        // Mute tlačítko
         muteButton.addEventListener('click', toggleMute);
 
-        // Skryje "Play" ikonu při spuštění
+        // --- Reakce na stav videa ---
+
+        // Když se video přehrává, skryjeme "Play" tlačítko
         video.addEventListener('play', () => {
-            overlay.classList.add('opacity-0', 'pointer-events-none');
-            photoOverlay.classList.add('hidden'); // Skryjeme fotku, pokud je vidět
+            playOverlay.classList.add('opacity-0', 'pointer-events-none');
         });
 
-        // Zobrazí "Play" ikonu při pauze
+        // Když je video pozastaveno (ale neukončeno), ukážeme "Play" tlačítko
         video.addEventListener('pause', () => {
-            if (!video.ended) { // Zobrazíme ikonu "Play" pouze pokud video nedohrálo
-                overlay.classList.remove('opacity-0', 'pointer-events-none');
+            if (!video.ended) {
+                playOverlay.classList.remove('opacity-0', 'pointer-events-none');
             }
         });
 
         // Když video dohraje do konce
         video.addEventListener('ended', () => {
-            videoContainer.classList.add('hidden'); // Skryjeme video kontejner
-            photoOverlay.classList.remove('hidden'); // Zobrazíme fotku s textem
-            audio.pause(); // Zajistíme, že hudba přestane hrát
-            audio.currentTime = 0; // Přetočíme hudbu na začátek pro další spuštění
-            // Zobrazíme "Play" ikonu znovu, aby bylo možné video restartovat kliknutím
-            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            videoContainer.classList.add('hidden');
+            photoOverlay.classList.remove('hidden');
+            audio.pause();
         });
-
-        // Kliknutí na fotku restartuje video
-        photoOverlay.addEventListener('click', () => {
-            videoContainer.classList.remove('hidden'); // Znovu zobrazíme video kontejner
-            photoOverlay.classList.add('hidden'); // Skryjeme fotku
-            video.currentTime = 0; // Přetočíme video na začátek
-            togglePlayPause(); // Spustíme přehrávání
-        });
-
     </script>
 
 </body>
