@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Prezentace</title>
+    <title>Video Prezentace s Hudbou</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Vlastní styl pro zajištění, že video bude vždy na pozadí a responzivní */
@@ -37,8 +37,8 @@
         </div>
     </div>
 
-    <audio autoplay loop>
-        <source src="sunset.mp3" type="audio/mp3">
+    <audio id="background-music" loop>
+        <source src="sunset.mp3" type="audio/mpeg">
         Váš prohlížeč nepodporuje přehrávání zvuku.
     </audio>
 
@@ -46,9 +46,25 @@
         // Získání odkazů na elementy
         const video = document.getElementById('video-player');
         const overlay = document.getElementById('play-pause-overlay');
+        const audio = document.getElementById('background-music');
+        let musicStarted = false; // Sledujeme, zda hudba již hraje
 
-        // Funkce pro přepínání stavu přehrávání
+        // Funkce pro spuštění hudby (jen jednou)
+        function startMusic() {
+            if (!musicStarted) {
+                audio.play().catch(error => {
+                    // Pro případ, že by se přehrávání z nějakého důvodu nepodařilo
+                    console.error("Chyba při přehrávání audia:", error);
+                });
+                musicStarted = true;
+            }
+        }
+
+        // Funkce pro přepínání stavu přehrávání videa
         function togglePlayPause() {
+            // Při první interakci spustíme hudbu
+            startMusic();
+            
             if (video.paused) {
                 video.play();
             } else {
@@ -56,23 +72,19 @@
             }
         }
 
-        // Přidání posluchače události pro kliknutí na video
+        // Přidání posluchačů událostí
         video.addEventListener('click', togglePlayPause);
-        // Přidání posluchače i na překryvnou vrstvu, aby bylo možné video znovu spustit kliknutím na ikonu
         overlay.addEventListener('click', togglePlayPause);
-
 
         // Zobrazí ikonu, když se video pozastaví
         video.addEventListener('pause', () => {
             overlay.classList.remove('opacity-0');
-            // Povolíme klikání na překryvnou vrstvu, když je viditelná
             overlay.classList.remove('pointer-events-none');
         });
 
         // Skryje ikonu, když se video spustí
         video.addEventListener('play', () => {
             overlay.classList.add('opacity-0');
-            // Zakážeme klikání na překryvnou vrstvu, když je neviditelná
             overlay.classList.add('pointer-events-none');
         });
     </script>
