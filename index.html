@@ -8,13 +8,13 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Zabrání posouvání stránky */
+            overflow: hidden;
         }
         #video-player {
-            object-fit: cover; /* Video pokryje celou plochu bez deformace */
+            object-fit: cover;
         }
-        #play-pause-overlay, #mute-button {
-            transition: opacity 0.3s ease-in-out; /* Jemný přechod pro ikony */
+        #play-pause-overlay, #mute-button, #restart-overlay {
+            transition: opacity 0.3s ease-in-out;
             cursor: pointer;
         }
     </style>
@@ -22,7 +22,7 @@
 <body class="bg-black">
 
     <div class="fixed top-0 left-0 w-full h-full">
-        <video id="video-player" class="w-full h-full" loop muted playsinline>
+        <video id="video-player" class="w-full h-full" playsinline>
             <source src="sunset_compress.mp4" type="video/mp4">
             Váš prohlížeč nepodporuje přehrávání videí.
         </video>
@@ -31,6 +31,14 @@
             <div class="bg-black bg-opacity-50 rounded-full p-8">
                 <svg id="play-icon" class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div id="restart-overlay" class="absolute inset-0 flex items-center justify-center hidden">
+            <div class="bg-black bg-opacity-50 rounded-full p-8">
+                <svg class="w-16 h-16 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-4.991-2.691v4.992h-4.992m0 0h-4.992m4.992 0l-3.181-3.183a8.25 8.25 0 0111.664 0l3.181 3.183" />
                 </svg>
             </div>
         </div>
@@ -45,8 +53,7 @@
         </svg>
     </div>
 
-
-    <audio id="background-music" loop>
+    <audio id="background-music">
         <source src="sunset.mp3" type="audio/mpeg">
         Váš prohlížeč nepodporuje přehrávání zvuku.
     </audio>
@@ -56,11 +63,12 @@
         const video = document.getElementById('video-player');
         const audio = document.getElementById('background-music');
         const overlay = document.getElementById('play-pause-overlay');
+        const restartOverlay = document.getElementById('restart-overlay');
         const muteButton = document.getElementById('mute-button');
         const muteIcon = document.getElementById('mute-icon');
         const unmuteIcon = document.getElementById('unmute-icon');
 
-        // Funkce pro přepínání stavu přehrávání videa a hudby
+        // Funkce pro přepínání stavu přehrávání
         function togglePlayPause() {
             if (video.paused) {
                 video.play();
@@ -71,30 +79,41 @@
             }
         }
         
+        // Funkce pro restart videa a hudby
+        function restartVideo() {
+            restartOverlay.classList.add('hidden'); // Skryjeme restart tlačítko
+            video.currentTime = 0; // Vrátíme video na začátek
+            audio.currentTime = 0; // Vrátíme hudbu na začátek
+            togglePlayPause(); // Spustíme přehrávání
+        }
+
         // Funkce pro přepínání ztlumení
         function toggleMute() {
             audio.muted = !audio.muted;
-            // Aktualizace ikon
             muteIcon.classList.toggle('hidden');
             unmuteIcon.classList.toggle('hidden');
         }
 
-        // Přidání posluchačů událostí
-        // Kliknutí na video pauzne/spustí video i hudbu
+        // --- Posluchače událostí ---
         video.addEventListener('click', togglePlayPause);
-        // Kliknutí na překryvnou vrstvu spustí video i hudbu
         overlay.addEventListener('click', togglePlayPause);
-        // Kliknutí na tlačítko ztlumení
+        restartOverlay.addEventListener('click', restartVideo);
         muteButton.addEventListener('click', toggleMute);
 
-        // Skryje ikonu "Play", když se video spustí
+        // Skryje "Play" ikonu při spuštění
         video.addEventListener('play', () => {
             overlay.classList.add('opacity-0', 'pointer-events-none');
         });
 
-        // Zobrazí ikonu "Play", když se video pozastaví
+        // Zobrazí "Play" ikonu při pauze
         video.addEventListener('pause', () => {
             overlay.classList.remove('opacity-0', 'pointer-events-none');
+        });
+
+        // Když video dohraje do konce
+        video.addEventListener('ended', () => {
+            restartOverlay.classList.remove('hidden'); // Zobrazíme tlačítko pro restart
+            overlay.classList.add('opacity-0', 'pointer-events-none'); // Ujistíme se, že play ikona je skrytá
         });
 
     </script>
